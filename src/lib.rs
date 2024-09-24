@@ -1,4 +1,4 @@
-use ark_ff::{FftField, Field, PrimeField};
+use ark_ff::{BigInteger, FftField, Field, PrimeField};
 use ark_serialize::Flags;
 use num_bigint::BigUint;
 use std::iter::Iterator;
@@ -42,21 +42,16 @@ impl<T: PrimeField> FromStr for Ft<T> {
 
 impl<T: PrimeField> From<BigUint> for Ft<T> {
     fn from(value: BigUint) -> Self {
-        Ft::from(value)
+        T::from(value)
     }
 }
 
-impl<T: PrimeField> From<T> for Ft<T> {
-    fn from(value: T) -> Self {
-        Ft { inner: value }
-    }
-}
-
-impl<T: PrimeField> From<<Self as PrimeField>::BigInt> for Ft<T> {
-    fn from(value: <Self as PrimeField>::BigInt) -> Self {
-        T::from(value).into()
-    }
-}
+// impl<T: PrimeField, N: BigInteger> From<<Ft<T> as PrimeField>::BigInt> for Ft<T> {
+//     fn from(value: <Self as PrimeField>::BigInt) -> Self {
+//         todo!()
+//         // T::from(value).into()
+//     }
+// }
 
 impl<T: PrimeField> Field for Ft<T> {
     type BasePrimeField = Ft<T>;
@@ -76,18 +71,18 @@ impl<T: PrimeField> Field for Ft<T> {
     fn to_base_prime_field_elements(&self) -> Self::BasePrimeFieldIter {
         self.inner
             .to_base_prime_field_elements()
-            .map(|v| v.into())
+            .map(|v| from_primefield(v))
             .collect::<Vec<_>>()
             .into_iter()
     }
 
     fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self> {
         T::from_base_prime_field_elems(elems.iter().map(|v| v.inner).collect::<Vec<_>>().as_slice())
-            .map(|v| v.into())
+            .map(|v| from_primefield(v))
     }
 
     fn from_base_prime_field(elem: Self::BasePrimeField) -> Self {
-        T::from_base_prime_field(elem.inner).into()
+        from_primefield(T::from_base_prime_field(elem.inner))
     }
 
     fn double(&self) -> Self {
@@ -105,7 +100,7 @@ impl<T: PrimeField> Field for Ft<T> {
     }
 
     fn from_random_bytes_with_flags<F: Flags>(bytes: &[u8]) -> Option<(Self, F)> {
-        T::from_random_bytes_with_flags(bytes).map(|(v, f)| (v.into(), f))
+        T::from_random_bytes_with_flags(bytes).map(|(v, f)| (from_primefield(v), f))
     }
 
     fn legendre(&self) -> ark_ff::LegendreSymbol {
@@ -113,7 +108,7 @@ impl<T: PrimeField> Field for Ft<T> {
     }
 
     fn square(&self) -> Self {
-        self.inner.square().into()
+        from_primefield(self.inner.square())
     }
 
     fn square_in_place(&mut self) -> &mut Self {
@@ -122,7 +117,7 @@ impl<T: PrimeField> Field for Ft<T> {
     }
 
     fn inverse(&self) -> Option<Self> {
-        self.inner.inverse().map(|v| v.into())
+        self.inner.inverse().map(|v| from_primefield(v))
     }
 
     fn inverse_in_place(&mut self) -> Option<&mut Self> {
@@ -139,7 +134,7 @@ impl<T: PrimeField> Field for Ft<T> {
     }
 
     fn sqrt(&self) -> Option<Self> {
-        self.inner.sqrt().map(|v| v.into())
+        self.inner.sqrt().map(|v| from_primefield(v))
     }
 }
 

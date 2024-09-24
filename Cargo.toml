@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 ark-ff = "0.4.2"
+ark-serialize = "0.4.2"
 num-bigint = "0.4.6"

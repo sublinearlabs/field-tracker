@@ -119,6 +119,7 @@ name = "field-tracker"
 version = "0.1.0"
 dependencies = [
  "ark-ff",
+ "num-bigint",
 ]
 
 [[package]]

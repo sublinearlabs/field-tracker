@@ -1,4 +1,7 @@
-use ark_ff::PrimeField;
+use ark_ff::{FftField, PrimeField};
+use num_bigint::BigUint;
+use std::str::FromStr;
+
 struct Ft<T: PrimeField> {
     inner: T,
 }
@@ -23,5 +26,25 @@ impl<T: PrimeField> PrimeField for Ft<T> {
 
     fn into_bigint(self) -> Self::BigInt {
         self.inner.into_bigint()
+    }
+}
+
+impl<T: PrimeField> FftField for Ft<T> {
+    const GENERATOR: Self = T::GENERATOR;
+    const TWO_ADICITY: u32 = T::TWO_ADICITY;
+    const TWO_ADIC_ROOT_OF_UNITY: Self = T::TWO_ADIC_ROOT_OF_UNITY;
+}
+
+impl<T: PrimeField> FromStr for Ft<T> {
+    type Err = T::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        T::from_str(s).map(|v| v.into())
+    }
+}
+
+impl<T: PrimeField> From<BigUint> for Ft<T> {
+    fn from(value: BigUint) -> Self {
+        T::from(value).into()
     }
 }

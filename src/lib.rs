@@ -165,71 +165,71 @@ const fn from_primefield<T: PrimeField>(value: T) -> Ft<T> {
 
 impl<T: PrimeField> Display for Ft<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        self.inner.fmt(f)
     }
 }
 
 impl<T: PrimeField> PartialEq<Self> for Ft<T> {
     fn eq(&self, other: &Self) -> bool {
-        todo!()
+        self.inner.eq(other.inner)
     }
 }
 
 impl<T: PrimeField> Zero for Ft<T> {
     fn zero() -> Self {
-        todo!()
+        T::zero()
     }
 
     fn is_zero(&self) -> bool {
-        todo!()
+        self.is_zero()
     }
 }
 
 impl<T: PrimeField> Add<Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.add(rhs.inner))
     }
 }
 
 impl<T: PrimeField> One for Ft<T> {
     fn one() -> Self {
-        todo!()
+        T::one()
     }
 }
 
 impl<T: PrimeField> Mul<Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.mul(rhs.inner))
     }
 }
 
 impl<T: PrimeField> Neg<Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn neg(self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.neg())
     }
 }
 
 impl<T: PrimeField> UniformRand for Ft<T> {
     fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        todo!()
+        T::rand(rng)
     }
 }
 
 impl<T: PrimeField> zeroize::Zeroize for Ft<T> {
     fn zeroize(&mut self) {
-        todo!()
+        self.inner.zeroize();
     }
 }
 
 impl<T: PrimeField> Hash for Ft<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        todo!()
+        self.inner.hash(state);
     }
 }
 
@@ -239,11 +239,11 @@ impl<T: PrimeField> CanonicalSerialize for Ft<T> {
         writer: W,
         compress: Compress,
     ) -> Result<(), SerializationError> {
-        todo!()
+        self.inner.serialize_with_mode(writer, compress)
     }
 
     fn serialized_size(&self, compress: Compress) -> usize {
-        todo!()
+        self.inner.serialized_size(compress)
     }
 }
 
@@ -253,11 +253,11 @@ impl<T: PrimeField> CanonicalSerializeWithFlags for Ft<T> {
         writer: W,
         flags: F,
     ) -> Result<(), SerializationError> {
-        todo!()
+        self.inner.serialize_with_flags(writer, flags)
     }
 
     fn serialized_size_with_flags<F: Flags>(&self) -> usize {
-        todo!()
+        self.inner.serialized_size_with_flags()
     }
 }
 
@@ -267,13 +267,13 @@ impl<T: PrimeField> CanonicalDeserialize for Ft<T> {
         compress: Compress,
         validate: Validate,
     ) -> Result<Self, SerializationError> {
-        todo!()
+        T::deserialize_with_mode(reader, compress, validate)
     }
 }
 
 impl<T: PrimeField> Valid for Ft<T> {
     fn check(&self) -> Result<(), SerializationError> {
-        todo!()
+        self.inner.check()
     }
 }
 
@@ -281,63 +281,63 @@ impl<T: PrimeField> CanonicalDeserializeWithFlags for Ft<T> {
     fn deserialize_with_flags<R: Read, F: Flags>(
         reader: R,
     ) -> Result<(Self, F), SerializationError> {
-        todo!()
+        T::deserialize_with_flags(reader)
     }
 }
 
 impl<T: PrimeField> Sub<Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.sub(rhs.inner))
     }
 }
 
 impl<T: PrimeField> Div<Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn div(self, rhs: Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.div(rhs.inner))
     }
 }
 
 impl<T: PrimeField> AddAssign<Self> for Ft<T> {
     fn add_assign(&mut self, rhs: Self) {
-        todo!()
+        self.inner.add_assign(rhs.inner)
     }
 }
 
 impl<T: PrimeField> SubAssign<Self> for Ft<T> {
     fn sub_assign(&mut self, rhs: Self) {
-        todo!()
+        self.inner.sub_assign(rhs.inner)
     }
 }
 
 impl<T: PrimeField> MulAssign<Self> for Ft<T> {
     fn mul_assign(&mut self, rhs: Self) {
-        todo!()
+        self.inner.mul_assign(rhs.inner)
     }
 }
 
 impl<T: PrimeField> DivAssign<Self> for Ft<T> {
     fn div_assign(&mut self, rhs: Self) {
-        todo!()
+        self.inner.div_assign(rhs.inner)
     }
 }
 
 impl<T: PrimeField> Add<&'a Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn add(self, rhs: &'a Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.add(rhs.inner))
     }
 }
 
 impl<T: PrimeField> Sub<&'a Self, Output = Self> for Ft<T> {
-    type Output = ();
+    type Output = Ft<T>;
 
     fn sub(self, rhs: &'a Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.sub(rhs.inner))
     }
 }
 

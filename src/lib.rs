@@ -48,3 +48,9 @@ impl<T: PrimeField> From<BigUint> for Ft<T> {
         T::from(value).into()
     }
 }
+
+impl<T: PrimeField> From<<Self as PrimeField>::BigInt> for Ft<T>{
+    fn from(value: <Self as PrimeField>::BigInt) -> Self {
+        T::from(value).into()
+    }
+}

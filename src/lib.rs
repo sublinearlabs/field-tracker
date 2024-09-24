@@ -46,6 +46,12 @@ impl<T: PrimeField> From<BigUint> for Ft<T> {
     }
 }
 
+impl<T: PrimeField> From<Ft<T>> for BigUint {
+    fn from(value: Ft<T>) -> BigUint {
+        value.inner.into()
+    }
+}
+
 impl<T: PrimeField> From<T> for Ft<T> {
     fn from(value: T) -> Self {
         Ft { inner: value }

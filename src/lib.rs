@@ -1,4 +1,4 @@
-use ark_ff::{FftField, Field, LegendreSymbol, PrimeField, SqrtPrecomputation};
+use ark_ff::{FftField, PrimeField};
 use num_bigint::BigUint;
 use std::str::FromStr;
 

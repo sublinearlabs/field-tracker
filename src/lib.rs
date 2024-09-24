@@ -1,5 +1,7 @@
-use std::str::FromStr;
 use ark_ff::{FftField, PrimeField};
+use num_bigint::BigUint;
+use std::str::FromStr;
+
 struct Ft<T: PrimeField> {
     inner: T,
 }
@@ -41,3 +43,8 @@ impl<T: PrimeField> FromStr for Ft<T> {
     }
 }
 
+impl<T: PrimeField> From<BigUint> for Ft<T> {
+    fn from(value: BigUint) -> Self {
+        T::from(value).into()
+    }
+}

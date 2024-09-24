@@ -1,6 +1,7 @@
 use ark_ff::{Field, PrimeField};
 use ark_serialize::Flags;
 
+#[derive(Debug)]
 struct Ft<T: PrimeField> {
     inner: T,
 }
@@ -10,8 +11,7 @@ impl<T: PrimeField> Field for Ft<T> {
 
     type BasePrimeFieldIter = T::BasePrimeFieldIter;
 
-    const SQRT_PRECOMP: Option<ark_ff::SqrtPrecomputation<Self>> =
-        T::SQRT_PRECOMP.map(|v| v.into());
+    const SQRT_PRECOMP: Option<ark_ff::SqrtPrecomputation<Self>> = None;
 
     const ZERO: Self = from_primefield(T::ZERO);
 
@@ -79,6 +79,10 @@ impl<T: PrimeField> Field for Ft<T> {
 
     fn frobenius_map_in_place(&mut self, power: usize) {
         self.inner.frobenius_map_in_place(power)
+    }
+
+    fn sqrt(&self) -> Option<Self> {
+        self.inner.sqrt().map(|v| v.into())
     }
 }
 

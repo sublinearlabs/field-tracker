@@ -1,4 +1,4 @@
-use ark_ff::{FftField, PrimeField};
+use ark_ff::{FftField, Field, LegendreSymbol, PrimeField, SqrtPrecomputation};
 use num_bigint::BigUint;
 use std::str::FromStr;
 
@@ -45,6 +45,12 @@ impl<T: PrimeField> FromStr for Ft<T> {
 
 impl<T: PrimeField> From<BigUint> for Ft<T> {
     fn from(value: BigUint) -> Self {
+        T::from(value).into()
+    }
+}
+
+impl<T: PrimeField> From<<Self as PrimeField>::BigInt> for Ft<T>{
+    fn from(value: <Self as PrimeField>::BigInt) -> Self {
         T::from(value).into()
     }
 }

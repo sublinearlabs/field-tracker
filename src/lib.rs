@@ -1,15 +1,67 @@
-use ark_ff::{Field, PrimeField};
+use ark_ff::{FftField, Field, PrimeField};
 use ark_serialize::Flags;
+use num_bigint::BigUint;
+use std::iter::Iterator;
+use std::{str::FromStr, vec::IntoIter};
 
 #[derive(Debug)]
 struct Ft<T: PrimeField> {
     inner: T,
 }
 
-impl<T: PrimeField> Field for Ft<T> {
-    type BasePrimeField = T::BasePrimeField;
+impl<T: PrimeField> PrimeField for Ft<T> {
+    type BigInt = T::BigInt;
+    const MODULUS: Self::BigInt = T::MODULUS;
+    const MODULUS_MINUS_ONE_DIV_TWO: Self::BigInt = T::MODULUS_MINUS_ONE_DIV_TWO;
+    const MODULUS_BIT_SIZE: u32 = T::MODULUS_BIT_SIZE;
+    const TRACE: Self::BigInt = T::TRACE;
+    const TRACE_MINUS_ONE_DIV_TWO: Self::BigInt = T::TRACE_MINUS_ONE_DIV_TWO;
 
-    type BasePrimeFieldIter = T::BasePrimeFieldIter;
+    fn from_bigint(repr: Self::BigInt) -> Option<Self> {
+        T::from_bigint(repr).map(|v| v.into())
+    }
+
+    fn into_bigint(self) -> Self::BigInt {
+        self.inner.into_bigint()
+    }
+}
+
+impl<T: PrimeField> FftField for Ft<T> {
+    const GENERATOR: Self = from_primefield(T::GENERATOR);
+    const TWO_ADICITY: u32 = T::TWO_ADICITY;
+    const TWO_ADIC_ROOT_OF_UNITY: Self = from_primefield(T::TWO_ADIC_ROOT_OF_UNITY);
+}
+
+impl<T: PrimeField> FromStr for Ft<T> {
+    type Err = T::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        T::from_str(s).map(|v| v.into())
+    }
+}
+
+impl<T: PrimeField> From<BigUint> for Ft<T> {
+    fn from(value: BigUint) -> Self {
+        Ft::from(value)
+    }
+}
+
+impl<T: PrimeField> From<T> for Ft<T> {
+    fn from(value: T) -> Self {
+        Ft { inner: value }
+    }
+}
+
+impl<T: PrimeField> From<<Self as PrimeField>::BigInt> for Ft<T> {
+    fn from(value: <Self as PrimeField>::BigInt) -> Self {
+        T::from(value).into()
+    }
+}
+
+impl<T: PrimeField> Field for Ft<T> {
+    type BasePrimeField = Ft<T>;
+
+    type BasePrimeFieldIter = IntoIter<Self::BasePrimeField>;
 
     const SQRT_PRECOMP: Option<ark_ff::SqrtPrecomputation<Self>> = None;
 
@@ -22,15 +74,20 @@ impl<T: PrimeField> Field for Ft<T> {
     }
 
     fn to_base_prime_field_elements(&self) -> Self::BasePrimeFieldIter {
-        self.inner.to_base_prime_field_elements()
+        self.inner
+            .to_base_prime_field_elements()
+            .map(|v| v.into())
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 
     fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self> {
-        T::from_base_prime_field_elems(elems).map(|v| v.into())
+        T::from_base_prime_field_elems(elems.iter().map(|v| v.inner).collect::<Vec<_>>().as_slice())
+            .map(|v| v.into())
     }
 
     fn from_base_prime_field(elem: Self::BasePrimeField) -> Self {
-        T::from_base_prime_field(elem).into()
+        T::from_base_prime_field(elem.inner).into()
     }
 
     fn double(&self) -> Self {
@@ -83,12 +140,6 @@ impl<T: PrimeField> Field for Ft<T> {
 
     fn sqrt(&self) -> Option<Self> {
         self.inner.sqrt().map(|v| v.into())
-    }
-}
-
-impl<T: PrimeField> From<T> for Ft<T> {
-    fn from(value: T) -> Self {
-        Ft { inner: value }
     }
 }
 

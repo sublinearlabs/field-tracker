@@ -343,158 +343,158 @@ impl<T: PrimeField> Sub<&'a Self, Output = Self> for Ft<T> {
 
 // Francis
 
-impl<T: PrimeField> Mul<&'a Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Mul<&'a Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn mul(self, rhs: &'a Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.mul(rhs.inner))
     }
 }
 
-impl<T: PrimeField> Div<&'a Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Div<&'a Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn div(self, rhs: &'a Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.div(rhs.inner))
     }
 }
 
-impl<T: PrimeField> AddAssign<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> AddAssign<&'a Self> for Ft<T> {
     fn add_assign(&mut self, rhs: &'a Self) {
-        todo!()
+        self.inner.add_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> SubAssign<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> SubAssign<&'a Self> for Ft<T> {
     fn sub_assign(&mut self, rhs: &'a Self) {
-        todo!()
+        self.inner.sub_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> MulAssign<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> MulAssign<&'a Self> for Ft<T> {
     fn mul_assign(&mut self, rhs: &'a Self) {
-        todo!()
+        self.inner.mul_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> DivAssign<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> DivAssign<&'a Self> for Ft<T> {
     fn div_assign(&mut self, rhs: &'a Self) {
-        todo!()
+        self.inner.div_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> Add<&'a mut Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Add<&'a mut Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn add(self, rhs: &'a mut Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.add(rhs.inner))
     }
 }
 
-impl<T: PrimeField> Sub<&'a mut Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Sub<&'a mut Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn sub(self, rhs: &'a mut Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.sub(rhs.inner))
     }
 }
 
-impl<T: PrimeField> Mul<&'a mut Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Mul<&'a mut Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn mul(self, rhs: &'a mut Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.mul(rhs.inner))
     }
 }
 
-impl<T: PrimeField> Div<&'a mut Self, Output = Self> for Ft<T> {
-    type Output = ();
+impl<'a, T: PrimeField> Div<&'a mut Self> for Ft<T> {
+    type Output = Ft<T>;
 
     fn div(self, rhs: &'a mut Self) -> Self::Output {
-        todo!()
+        from_primefield(self.inner.div(rhs.inner))
     }
 }
 
-impl<T: PrimeField> AddAssign<&'a mut Self> for Ft<T> {
+impl<'a, T: PrimeField> AddAssign<&'a mut Self> for Ft<T> {
     fn add_assign(&mut self, rhs: &'a mut Self) {
-        todo!()
+        self.inner.add_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> SubAssign<&'a mut Self> for Ft<T> {
+impl<'a, T: PrimeField> SubAssign<&'a mut Self> for Ft<T> {
     fn sub_assign(&mut self, rhs: &'a mut Self) {
-        todo!()
+        self.inner.sub_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> MulAssign<&'a mut Self> for Ft<T> {
+impl<'a, T: PrimeField> MulAssign<&'a mut Self> for Ft<T> {
     fn mul_assign(&mut self, rhs: &'a mut Self) {
-        todo!()
+        self.inner.mul_assign(rhs.inner);
     }
 }
 
-impl<T: PrimeField> DivAssign<&'a mut Self> for Ft<T> {
+impl<'a, T: PrimeField> DivAssign<&'a mut Self> for Ft<T> {
     fn div_assign(&mut self, rhs: &'a mut Self) {
-        todo!()
+        self.inner.div_assign(rhs.inner);
     }
 }
 
 impl<T: PrimeField> Sum<Self> for Ft<T> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        todo!()
+        iter.sum()
     }
 }
 
-impl<T: PrimeField> Sum<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> Sum<&'a Self> for Ft<T> {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        todo!()
+        iter.sum()
     }
 }
 
 impl<T: PrimeField> Product<Self> for Ft<T> {
     fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
-        todo!()
+        iter.product()
     }
 }
 
-impl<T: PrimeField> Product<&'a Self> for Ft<T> {
+impl<'a, T: PrimeField> Product<&'a Self> for Ft<T> {
     fn product<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        todo!()
+        iter.product()
     }
 }
 
 impl<T: PrimeField> From<u128> for Ft<T> {
     fn from(value: u128) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }
 
 impl<T: PrimeField> From<u64> for Ft<T> {
     fn from(value: u64) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }
 
 impl<T: PrimeField> From<u32> for Ft<T> {
     fn from(value: u32) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }
 
 impl<T: PrimeField> From<u16> for Ft<T> {
     fn from(value: u16) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }
 
 impl<T: PrimeField> From<u8> for Ft<T> {
     fn from(value: u8) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }
 
 impl<T: PrimeField> From<bool> for Ft<T> {
     fn from(value: bool) -> Self {
-        todo!()
+        from_primefield(value.into())
     }
 }

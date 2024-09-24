@@ -4,7 +4,7 @@ use num_bigint::BigUint;
 use std::iter::Iterator;
 use std::{str::FromStr, vec::IntoIter};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq, PartialEq, Copy, Default, Ord)]
 struct Ft<T: PrimeField> {
     inner: T,
 }

@@ -1,4 +1,5 @@
-use ark_ff::PrimeField;
+use std::str::FromStr;
+use ark_ff::{FftField, PrimeField};
 struct Ft<T: PrimeField> {
     inner: T,
 }
@@ -25,3 +26,18 @@ impl<T: PrimeField> PrimeField for Ft<T> {
         self.inner.into_bigint()
     }
 }
+
+impl<T: PrimeField> FftField for Ft<T> {
+    const GENERATOR: Self = T::GENERATOR;
+    const TWO_ADICITY: u32 = T::TWO_ADICITY;
+    const TWO_ADIC_ROOT_OF_UNITY: Self = T::TWO_ADIC_ROOT_OF_UNITY;
+}
+
+impl<T: PrimeField> FromStr for Ft<T> {
+    type Err = T::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        T::from_str(s).map(|v| v.into())
+    }
+}
+

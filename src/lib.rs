@@ -161,17 +161,9 @@ const fn from_primefield<T: PrimeField>(value: T) -> Ft<T> {
     Ft { inner: value }
 }
 
-// Wisdom
-
 impl<T: PrimeField> Display for Ft<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
-    }
-}
-
-impl<T: PrimeField> PartialEq<Self> for Ft<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.inner.eq(other.inner)
     }
 }
 
@@ -185,7 +177,7 @@ impl<T: PrimeField> Zero for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Add<Self, Output = Self> for Ft<T> {
+impl<T: PrimeField> Add<Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -199,7 +191,7 @@ impl<T: PrimeField> One for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Mul<Self, Output = Self> for Ft<T> {
+impl<T: PrimeField> Mul<Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -207,7 +199,7 @@ impl<T: PrimeField> Mul<Self, Output = Self> for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Neg<Output = Self> for Ft<T> {
+impl<T: PrimeField> Neg for Ft<T> {
     type Output = Ft<T>;
 
     fn neg(self) -> Self::Output {
@@ -285,7 +277,7 @@ impl<T: PrimeField> CanonicalDeserializeWithFlags for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Sub<Self, Output = Self> for Ft<T> {
+impl<T: PrimeField> Sub<Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -293,7 +285,7 @@ impl<T: PrimeField> Sub<Self, Output = Self> for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Div<Self, Output = Self> for Ft<T> {
+impl<T: PrimeField> Div<Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn div(self, rhs: Self) -> Self::Output {
@@ -325,7 +317,7 @@ impl<T: PrimeField> DivAssign<Self> for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Add<&'a Self, Output = Self> for Ft<T> {
+impl<'a, T: PrimeField> Add<&'a Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn add(self, rhs: &'a Self) -> Self::Output {
@@ -333,15 +325,13 @@ impl<T: PrimeField> Add<&'a Self, Output = Self> for Ft<T> {
     }
 }
 
-impl<T: PrimeField> Sub<&'a Self, Output = Self> for Ft<T> {
+impl<'a, T: PrimeField> Sub<&'a Self> for Ft<T> {
     type Output = Ft<T>;
 
     fn sub(self, rhs: &'a Self) -> Self::Output {
         from_primefield(self.inner.sub(rhs.inner))
     }
 }
-
-// Francis
 
 impl<'a, T: PrimeField> Mul<&'a Self> for Ft<T> {
     type Output = Ft<T>;

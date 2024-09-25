@@ -71,13 +71,6 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> From<Ft<N, T>> for BigIn
     }
 }
 
-// impl<const N: usize, T: PrimeField> From<T::BigInt> for Ft<N, T> {
-//     // fn from(value: <Self as PrimeField>::BigInt) -> Self {
-//     //     todo!()
-//     //     // T::from(value).into()
-//     // }
-// }
-
 impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     type BasePrimeField = Ft<N, T>;
 

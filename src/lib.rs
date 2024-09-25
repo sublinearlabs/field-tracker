@@ -12,7 +12,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use std::{str::FromStr, vec::IntoIter};
 
 #[derive(Debug, Clone, Eq, PartialEq, Copy, Default, Ord, PartialOrd)]
-struct Ft<const N: usize, T: PrimeField> {
+pub struct Ft<const N: usize, T: PrimeField> {
     inner: T,
 }
 

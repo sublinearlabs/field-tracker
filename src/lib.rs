@@ -17,7 +17,7 @@ struct Ft<const N: usize, T: PrimeField> {
     inner: T,
 }
 
-impl<const N: usize, T: PrimeField> PrimeField for Ft<N, T> {
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> PrimeField for Ft<N, T> {
     type BigInt = BigInt<N>;
     const MODULUS: Self::BigInt = T::MODULUS;
     const MODULUS_MINUS_ONE_DIV_TWO: Self::BigInt = T::MODULUS_MINUS_ONE_DIV_TWO;
@@ -34,7 +34,7 @@ impl<const N: usize, T: PrimeField> PrimeField for Ft<N, T> {
     }
 }
 
-impl<const N: usize, T: PrimeField> FftField for Ft<N, T> {
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> FftField for Ft<N, T> {
     const GENERATOR: Self = from_primefield(T::GENERATOR);
     const TWO_ADICITY: u32 = T::TWO_ADICITY;
     const TWO_ADIC_ROOT_OF_UNITY: Self = from_primefield(T::TWO_ADIC_ROOT_OF_UNITY);
@@ -79,7 +79,7 @@ impl<const N: usize, T: PrimeField> From<Ft<N, T>> for BigInt<N> {
 //     // }
 // }
 
-impl<const N: usize, T: PrimeField> Field for Ft<N, T> {
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     type BasePrimeField = Ft<N, T>;
 
     type BasePrimeFieldIter = IntoIter<Self::BasePrimeField>;

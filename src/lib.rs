@@ -8,7 +8,6 @@ use rand::Rng;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::iter::{Iterator, Product, Sum};
-use std::marker::PhantomData;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::{str::FromStr, vec::IntoIter};
 
@@ -60,15 +59,15 @@ impl<const N: usize, T: PrimeField> From<Ft<N, T>> for BigUint {
     }
 }
 
-impl<const N: usize, T: PrimeField> From<BigInt<N>> for Ft<N, T> {
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> From<BigInt<N>> for Ft<N, T> {
     fn from(value: BigInt<N>) -> Self {
-        todo!()
+        from_primefield(T::from_bigint(value).unwrap())
     }
 }
 
-impl<const N: usize, T: PrimeField> From<Ft<N, T>> for BigInt<N> {
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> From<Ft<N, T>> for BigInt<N> {
     fn from(value: Ft<N, T>) -> Self {
-        todo!()
+        value.into_bigint()
     }
 }
 
@@ -180,7 +179,7 @@ impl<const N: usize, T: PrimeField> Zero for Ft<N, T> {
     }
 
     fn is_zero(&self) -> bool {
-        self.is_zero()
+        self.inner.is_zero()
     }
 }
 
@@ -492,6 +491,12 @@ impl<const N: usize, T: PrimeField> From<u8> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField> From<bool> for Ft<N, T> {
     fn from(value: bool) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField + std::convert::From<i32>> From<i32> for Ft<N, T> {
+    fn from(value: i32) -> Self {
         from_primefield(value.into())
     }
 }

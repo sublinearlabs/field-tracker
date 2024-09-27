@@ -80,18 +80,18 @@ impl Tracker {
     }
 
     pub fn summary() -> Report {
-        GLOBAL_TRACKER.with(|v| {
-            let stack = v.borrow_mut().stack.clone();
-            stack.iter().skip(1).fold(
-                stack
-                    .first()
-                    .unwrap_or(&Report::new(GLOBAL_SUMMARY))
-                    .clone(),
-                |mut init, report| {
-                    init.merge(report.clone());
-                    init
-                },
-            )
+        GLOBAL_TRACKER.with(|tracker| {
+            // TODO: investigate how expensive this is
+            let mut stack_copy = tracker.borrow().stack.clone();
+
+            while stack_copy.len() >= 2 {
+                let child = stack_copy
+                    .pop()
+                    .expect("confirmed stack copy has at least 2 elements");
+                stack_copy.last_mut().unwrap().merge(child);
+            }
+
+            stack_copy.pop().unwrap()
         })
     }
 
@@ -102,30 +102,7 @@ impl Tracker {
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = f.write_fmt(format_args!(
-            "
-            {}\n
-            \t Add ops: {}, Mul ops: {}, Inv ops: {} \n
-            ",
-            self.name, self.values.add, self.values.mul, self.values.inv
-        ));
-
-        match &self.children {
-            Some(children) => {
-                children.iter().for_each(|child| {
-                    let _ = f.write_fmt(format_args!(
-                        "
-                        {}\n
-                        \t Add ops: {}, Mul ops: {}, Inv ops: {} \n
-                        ",
-                        child.name, child.values.add, child.values.mul, child.values.inv
-                    ));
-                });
-            }
-            None => {}
-        }
-
-        Ok(())
+        todo!()
     }
 }
 

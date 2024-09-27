@@ -1,9 +1,9 @@
-use std::{cell::RefCell, fmt::Display, sync::LazyLock};
+use std::{cell::RefCell, fmt::Display};
 
 const GLOBAL_SUMMARY: &'static str = "Global Summary";
 
 thread_local! {
-    static GLOBAL_TRACKER: LazyLock<RefCell<Tracker>> = LazyLock::new(|| RefCell::new(Tracker::new()));
+    static GLOBAL_TRACKER: RefCell<Tracker> = RefCell::new(Tracker::new());
 }
 
 #[derive(Debug, Clone)]

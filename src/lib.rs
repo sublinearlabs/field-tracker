@@ -10,12 +10,27 @@ use std::hash::{Hash, Hasher};
 use std::iter::{Iterator, Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::{str::FromStr, vec::IntoIter};
+use tracker::{update_add, update_inv, update_mul, Report, Tracker};
 
-pub mod tracker;
+mod tracker;
 
 #[derive(Debug, Clone, Eq, PartialEq, Copy, Default, Ord, PartialOrd)]
 pub struct Ft<const N: usize, T: PrimeField> {
     inner: T,
+}
+
+impl<const N: usize, T: PrimeField> Ft<N, T> {
+    pub fn start(name: &'static str) {
+        Tracker::start(name);
+    }
+
+    pub fn end() {
+        Tracker::end();
+    }
+
+    pub fn summary() -> Report {
+        Tracker::summary()
+    }
 }
 
 impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> PrimeField for Ft<N, T> {
@@ -137,10 +152,12 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     }
 
     fn inverse(&self) -> Option<Self> {
+        update_inv();
         self.inner.inverse().map(|v| from_primefield(v))
     }
 
     fn inverse_in_place(&mut self) -> Option<&mut Self> {
+        update_inv();
         let inner = self.inner.inverse_in_place();
         if inner.is_none() {
             None
@@ -182,6 +199,7 @@ impl<const N: usize, T: PrimeField> Add<Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn add(self, rhs: Self) -> Self::Output {
+        update_add();
         from_primefield(self.inner.add(rhs.inner))
     }
 }
@@ -196,6 +214,7 @@ impl<const N: usize, T: PrimeField> Mul<Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn mul(self, rhs: Self) -> Self::Output {
+        update_mul();
         from_primefield(self.inner.mul(rhs.inner))
     }
 }
@@ -296,6 +315,7 @@ impl<const N: usize, T: PrimeField> Div<Self> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField> AddAssign<Self> for Ft<N, T> {
     fn add_assign(&mut self, rhs: Self) {
+        update_add();
         self.inner.add_assign(rhs.inner)
     }
 }
@@ -308,6 +328,7 @@ impl<const N: usize, T: PrimeField> SubAssign<Self> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField> MulAssign<Self> for Ft<N, T> {
     fn mul_assign(&mut self, rhs: Self) {
+        update_mul();
         self.inner.mul_assign(rhs.inner)
     }
 }
@@ -322,6 +343,7 @@ impl<'a, const N: usize, T: PrimeField> Add<&'a Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn add(self, rhs: &'a Self) -> Self::Output {
+        update_add();
         from_primefield(self.inner.add(rhs.inner))
     }
 }
@@ -338,6 +360,7 @@ impl<'a, const N: usize, T: PrimeField> Mul<&'a Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn mul(self, rhs: &'a Self) -> Self::Output {
+        update_mul();
         from_primefield(self.inner.mul(rhs.inner))
     }
 }
@@ -352,6 +375,7 @@ impl<'a, const N: usize, T: PrimeField> Div<&'a Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> AddAssign<&'a Self> for Ft<N, T> {
     fn add_assign(&mut self, rhs: &'a Self) {
+        update_add();
         self.inner.add_assign(rhs.inner);
     }
 }
@@ -364,6 +388,7 @@ impl<'a, const N: usize, T: PrimeField> SubAssign<&'a Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> MulAssign<&'a Self> for Ft<N, T> {
     fn mul_assign(&mut self, rhs: &'a Self) {
+        update_mul();
         self.inner.mul_assign(rhs.inner);
     }
 }
@@ -378,6 +403,7 @@ impl<'a, const N: usize, T: PrimeField> Add<&'a mut Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn add(self, rhs: &'a mut Self) -> Self::Output {
+        update_add();
         from_primefield(self.inner.add(rhs.inner))
     }
 }
@@ -394,6 +420,7 @@ impl<'a, const N: usize, T: PrimeField> Mul<&'a mut Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn mul(self, rhs: &'a mut Self) -> Self::Output {
+        update_mul();
         from_primefield(self.inner.mul(rhs.inner))
     }
 }
@@ -408,6 +435,7 @@ impl<'a, const N: usize, T: PrimeField> Div<&'a mut Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> AddAssign<&'a mut Self> for Ft<N, T> {
     fn add_assign(&mut self, rhs: &'a mut Self) {
+        update_add();
         self.inner.add_assign(rhs.inner);
     }
 }
@@ -420,6 +448,7 @@ impl<'a, const N: usize, T: PrimeField> SubAssign<&'a mut Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> MulAssign<&'a mut Self> for Ft<N, T> {
     fn mul_assign(&mut self, rhs: &'a mut Self) {
+        update_mul();
         self.inner.mul_assign(rhs.inner);
     }
 }
@@ -493,5 +522,35 @@ impl<const N: usize, T: PrimeField> From<bool> for Ft<N, T> {
 impl<const N: usize, T: PrimeField + std::convert::From<i32>> From<i32> for Ft<N, T> {
     fn from(value: i32) -> Self {
         from_primefield(value.into())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use ark_bn254::Fr;
+    use ark_ff::Field;
+
+    use crate::Ft;
+
+    type F = Ft<4, Fr>;
+
+    #[test]
+    fn test_integration() {
+        let num1 = F::from(3);
+        let num2 = F::from(7);
+
+        let mut num3 = num1 + num2;
+
+        let mut num4 = num1 * num2;
+
+        num3 += num2;
+
+        let _ = num4.inverse();
+
+        num4.inverse_in_place();
+
+        assert_eq!(F::summary().values.add, 2);
+        assert_eq!(F::summary().values.mul, 1);
+        assert_eq!(F::summary().values.inv, 2);
     }
 }

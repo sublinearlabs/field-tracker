@@ -81,7 +81,6 @@ impl Tracker {
 
     pub fn summary() -> Report {
         GLOBAL_TRACKER.with(|tracker| {
-            // TODO: investigate how expensive this is
             let mut stack_copy = tracker.borrow().stack.clone();
 
             while stack_copy.len() >= 2 {

@@ -2,8 +2,9 @@ use std::{cell::RefCell, fmt::Display, sync::LazyLock};
 
 const GLOBAL_SUMMARY: &'static str = "Global Summary";
 
-static mut GLOBAL_TRACKER: LazyLock<RefCell<Tracker>> =
-    LazyLock::new(|| RefCell::new(Tracker::new()));
+thread_local! {
+    static GLOBAL_TRACKER: LazyLock<RefCell<Tracker>> = LazyLock::new(|| RefCell::new(Tracker::new()));
+}
 
 #[derive(Debug, Clone)]
 pub struct ReportValues {
@@ -64,24 +65,24 @@ impl Tracker {
     }
 
     pub fn start(name: &'static str) {
-        unsafe { GLOBAL_TRACKER.borrow_mut().stack.push(Report::new(name)) };
+        GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.push(Report::new(name)));
     }
 
     pub fn end() {
-        let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
-        if stack.len() <= 1 {
-            panic!("Tracking not Started");
-        }
-        let current_active = stack.pop().unwrap();
-        stack.last_mut().unwrap().merge(current_active);
+        GLOBAL_TRACKER.with(|v| {
+            let stack = &mut v.borrow_mut().stack;
+            if stack.len() <= 1 {
+                panic!("Tracking not Started");
+            }
+            let current_active = stack.pop().unwrap();
+            stack.last_mut().unwrap().merge(current_active)
+        });
     }
 
     pub fn summary() -> Report {
-        let stack = unsafe { &GLOBAL_TRACKER.borrow().stack };
-        stack
-            .iter()
-            .skip(1)
-            .fold(
+        GLOBAL_TRACKER.with(|v| {
+            let stack = v.borrow_mut().stack.clone();
+            stack.iter().skip(1).fold(
                 stack
                     .first()
                     .unwrap_or(&Report::new(GLOBAL_SUMMARY))
@@ -91,12 +92,11 @@ impl Tracker {
                     init
                 },
             )
-            .clone()
+        })
     }
 
     pub fn reset() {
-        // unsafe { GLOBAL_TRACKER.borrow_mut().stack = vec![Report::new(GLOBAL_SUMMARY)] };
-        unsafe { GLOBAL_TRACKER = LazyLock::new(|| RefCell::new(Tracker::new())) };
+        GLOBAL_TRACKER.with(|v| v.replace(Tracker::new()));
     }
 }
 
@@ -130,16 +130,13 @@ impl Display for Report {
 }
 
 pub fn update_add() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
-    stack.last_mut().unwrap().values.add += 1;
+    GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.add += 1);
 }
 pub fn update_mul() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
-    stack.last_mut().unwrap().values.mul += 1;
+    GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.mul += 1);
 }
 pub fn update_inv() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
-    stack.last_mut().unwrap().values.inv += 1;
+    GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.inv += 1);
 }
 
 #[cfg(test)]
@@ -196,5 +193,18 @@ pub mod tests {
         Tracker::summary();
         Tracker::end();
         Tracker::reset();
+    }
+
+    #[test]
+    pub fn test_one_layered_summary() {
+        Tracker::start("GKR");
+        update_add();
+        update_add();
+        update_inv();
+        update_mul();
+        Tracker::end();
+        assert_eq!(Tracker::summary().values.add, 2, "Wrong number of add op");
+        assert_eq!(Tracker::summary().values.mul, 1, "Wrong number of mul op");
+        assert_eq!(Tracker::summary().values.inv, 1, "Wrong number of inv op");
     }
 }

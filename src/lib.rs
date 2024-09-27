@@ -11,6 +11,8 @@ use std::iter::{Iterator, Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::{str::FromStr, vec::IntoIter};
 
+pub mod tracker;
+
 #[derive(Debug, Clone, Eq, PartialEq, Copy, Default, Ord, PartialOrd)]
 pub struct Ft<const N: usize, T: PrimeField> {
     inner: T,

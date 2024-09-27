@@ -8,9 +8,9 @@ thread_local! {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ReportValues {
-    add: i32,
-    mul: i32,
-    inv: i32,
+    pub add: usize,
+    pub mul: usize,
+    pub inv: usize,
 }
 
 impl Display for ReportValues {
@@ -26,7 +26,7 @@ impl Display for ReportValues {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Report {
     name: &'static str,
-    values: ReportValues,
+    pub values: ReportValues,
     children: Option<Vec<Report>>,
 }
 
@@ -84,11 +84,11 @@ impl Tracker {
         }
     }
 
-    fn start(name: &'static str) {
+    pub fn start(name: &'static str) {
         GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.push(Report::new(name)));
     }
 
-    fn end() {
+    pub fn end() {
         GLOBAL_TRACKER.with(|v| {
             let stack = &mut v.borrow_mut().stack;
             if stack.len() <= 1 {
@@ -99,7 +99,7 @@ impl Tracker {
         });
     }
 
-    fn summary() -> Report {
+    pub(crate) fn summary() -> Report {
         GLOBAL_TRACKER.with(|tracker| {
             let mut stack_copy = tracker.borrow().stack.clone();
 

@@ -6,14 +6,14 @@ thread_local! {
     static GLOBAL_TRACKER: RefCell<Tracker> = RefCell::new(Tracker::new());
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReportValues {
     add: i32,
     mul: i32,
     inv: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Report {
     name: &'static str,
     values: ReportValues,
@@ -117,12 +117,13 @@ pub fn update_inv() {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::{update_add, update_inv, update_mul, Tracker};
 
     #[test]
-    pub fn test_nested_tracker_summary_call() {
+    fn test_nested_tracker_summary_call() {
         Tracker::reset();
+
         Tracker::start("GKR");
         update_inv();
         assert_eq!(
@@ -130,6 +131,7 @@ pub mod tests {
             1,
             "Wrong summary for inverse"
         );
+
         Tracker::start("Sumcheck");
         update_add();
         update_add();
@@ -140,6 +142,7 @@ pub mod tests {
         assert_eq!(Tracker::summary().values.inv, 2, "Wrong summary for inv");
         assert_eq!(Tracker::summary().values.mul, 1, "Wrong summary for mul");
         Tracker::end();
+
         Tracker::start("Sumcheck");
         update_mul();
         update_mul();
@@ -147,7 +150,7 @@ pub mod tests {
         assert_eq!(Tracker::summary().values.mul, 4, "Wrong summary for mul");
         Tracker::end();
         Tracker::end();
-        println!("{}", Tracker::summary());
+
         Tracker::reset();
         Tracker::summary();
         assert_eq!(Tracker::summary().values.add, 0, "Wrong summary for add");
@@ -157,7 +160,7 @@ pub mod tests {
 
     #[test]
     #[should_panic]
-    pub fn test_end_tracker_inappropriately() {
+    fn test_end_tracker_inappropriately() {
         Tracker::reset();
         Tracker::summary();
         Tracker::start("GKR");
@@ -173,7 +176,8 @@ pub mod tests {
     }
 
     #[test]
-    pub fn test_one_layered_summary() {
+    fn test_one_layered_summary() {
+        Tracker::reset();
         Tracker::start("GKR");
         update_add();
         update_add();
@@ -183,5 +187,339 @@ pub mod tests {
         assert_eq!(Tracker::summary().values.add, 2, "Wrong number of add op");
         assert_eq!(Tracker::summary().values.mul, 1, "Wrong number of mul op");
         assert_eq!(Tracker::summary().values.inv, 1, "Wrong number of inv op");
+        Tracker::reset();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_should_panic_on_global_pop() {
+        Tracker::reset();
+        Tracker::end();
+        Tracker::reset();
+    }
+
+    #[test]
+    fn test_correct_summary_report() {
+        // TODO: figure out a better way to test summary history change
+        //  new way should be robust to new tracking items e.g div, exp ...
+
+        Tracker::reset();
+        Tracker::start("gkr");
+        {
+            update_add();
+            let summary_1 = Tracker::summary();
+            assert_eq!(&summary_1.values.add, &1);
+            assert_eq!(&summary_1.children.as_ref().unwrap()[0].values.add, &1);
+
+            Tracker::start("sumcheck");
+            let summary_2 = {
+                update_add();
+                update_inv();
+                let summary_2 = Tracker::summary();
+
+                // verify add
+                assert_eq!(&summary_2.values.add, &2);
+                assert_eq!(&summary_2.children.as_ref().unwrap()[0].values.add, &2);
+                assert_eq!(
+                    &summary_2.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .add,
+                    &1
+                );
+
+                // verify mul
+                assert_eq!(&summary_2.values.mul, &0);
+                assert_eq!(&summary_2.children.as_ref().unwrap()[0].values.mul, &0);
+                assert_eq!(
+                    &summary_2.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .mul,
+                    &0
+                );
+
+                // verify inv
+                assert_eq!(&summary_2.values.inv, &1);
+                assert_eq!(&summary_2.children.as_ref().unwrap()[0].values.inv, &1);
+                assert_eq!(
+                    &summary_2.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .inv,
+                    &1
+                );
+
+                summary_2
+            };
+            Tracker::end();
+
+            // summary_2 == summary_3
+            let summary_3 = Tracker::summary();
+            assert_eq!(summary_3, summary_2);
+
+            update_mul();
+            let summary_4 = Tracker::summary();
+
+            // verify add
+            assert_eq!(&summary_4.values.add, &2);
+            assert_eq!(&summary_4.children.as_ref().unwrap()[0].values.add, &2);
+            assert_eq!(
+                &summary_4.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .add,
+                &1
+            );
+
+            // verify mul
+            assert_eq!(&summary_4.values.mul, &1);
+            assert_eq!(&summary_4.children.as_ref().unwrap()[0].values.mul, &1);
+            assert_eq!(
+                &summary_4.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .mul,
+                &0
+            );
+
+            // verify inv
+            assert_eq!(&summary_4.values.inv, &1);
+            assert_eq!(&summary_4.children.as_ref().unwrap()[0].values.inv, &1);
+            assert_eq!(
+                &summary_4.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .inv,
+                &1
+            );
+
+            Tracker::start("sumcheck");
+            {
+                update_mul();
+                update_mul();
+                let summary_5 = Tracker::summary();
+
+                // verify add
+                assert_eq!(&summary_5.values.add, &2);
+                assert_eq!(&summary_5.children.as_ref().unwrap()[0].values.add, &2);
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .add,
+                    &1
+                );
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[1]
+                        .values
+                        .add,
+                    &0
+                );
+
+                // verify mul
+                assert_eq!(&summary_5.values.mul, &3);
+                assert_eq!(&summary_5.children.as_ref().unwrap()[0].values.mul, &3);
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .mul,
+                    &0
+                );
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[1]
+                        .values
+                        .mul,
+                    &2
+                );
+
+                // verify inv
+                assert_eq!(&summary_5.values.inv, &1);
+                assert_eq!(&summary_5.children.as_ref().unwrap()[0].values.inv, &1);
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[0]
+                        .values
+                        .inv,
+                    &1
+                );
+                assert_eq!(
+                    &summary_5.children.as_ref().unwrap()[0]
+                        .children
+                        .as_ref()
+                        .unwrap()[1]
+                        .values
+                        .inv,
+                    &0
+                );
+
+                update_add();
+            }
+            Tracker::end();
+            let summary_6 = Tracker::summary();
+
+            // verify add
+            assert_eq!(&summary_6.values.add, &3);
+            assert_eq!(&summary_6.children.as_ref().unwrap()[0].values.add, &3);
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .add,
+                &1
+            );
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[1]
+                    .values
+                    .add,
+                &1
+            );
+
+            // verify mul
+            assert_eq!(&summary_6.values.mul, &3);
+            assert_eq!(&summary_6.children.as_ref().unwrap()[0].values.mul, &3);
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .mul,
+                &0
+            );
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[1]
+                    .values
+                    .mul,
+                &2
+            );
+
+            // verify inv
+            assert_eq!(&summary_6.values.inv, &1);
+            assert_eq!(&summary_6.children.as_ref().unwrap()[0].values.inv, &1);
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[0]
+                    .values
+                    .inv,
+                &1
+            );
+            assert_eq!(
+                &summary_6.children.as_ref().unwrap()[0]
+                    .children
+                    .as_ref()
+                    .unwrap()[1]
+                    .values
+                    .inv,
+                &0
+            );
+
+            update_inv();
+        }
+        Tracker::end();
+
+        let summary_7 = Tracker::summary();
+        // verify add
+        assert_eq!(&summary_7.values.add, &3);
+        assert_eq!(&summary_7.children.as_ref().unwrap()[0].values.add, &3);
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .add,
+            &1
+        );
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[1]
+                .values
+                .add,
+            &1
+        );
+
+        // verify mul
+        assert_eq!(&summary_7.values.mul, &3);
+        assert_eq!(&summary_7.children.as_ref().unwrap()[0].values.mul, &3);
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .mul,
+            &0
+        );
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[1]
+                .values
+                .mul,
+            &2
+        );
+
+        // verify inv
+        assert_eq!(&summary_7.values.inv, &2);
+        assert_eq!(&summary_7.children.as_ref().unwrap()[0].values.inv, &2);
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .inv,
+            &1
+        );
+        assert_eq!(
+            &summary_7.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[1]
+                .values
+                .inv,
+            &0
+        );
+
+        Tracker::reset();
     }
 }

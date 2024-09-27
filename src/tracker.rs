@@ -6,11 +6,21 @@ thread_local! {
     static GLOBAL_TRACKER: RefCell<Tracker> = RefCell::new(Tracker::new());
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ReportValues {
     add: i32,
     mul: i32,
     inv: i32,
+}
+
+impl Display for ReportValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            format!("add: {}, mul: {}, inv: {}", self.add, self.mul, self.inv)
+        )
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -20,26 +30,16 @@ pub struct Report {
     children: Option<Vec<Report>>,
 }
 
-impl ReportValues {
-    pub fn new() -> Self {
-        Self {
-            add: 0,
-            mul: 0,
-            inv: 0,
-        }
-    }
-}
-
 impl Report {
-    pub fn new(name: &'static str) -> Self {
+    fn new(name: &'static str) -> Self {
         Report {
             name,
-            values: ReportValues::new(),
+            values: ReportValues::default(),
             children: None,
         }
     }
 
-    pub fn merge(&mut self, child_report: Report) {
+    fn merge(&mut self, child_report: Report) {
         self.values.add += child_report.values.add;
         self.values.mul += child_report.values.mul;
         self.values.inv += child_report.values.inv;
@@ -50,6 +50,26 @@ impl Report {
             None => self.children = Some(vec![child_report]),
         }
     }
+
+    fn to_string(&self, tab_count: usize) -> String {
+        let mut output = String::new();
+
+        let tab_str = "  ".repeat(tab_count);
+
+        output.push_str(format!("\n{}{}\n", tab_str, self.name).as_str());
+        output.push_str(format!(" {}{}\n", tab_str, self.values.to_string()).as_str());
+
+        match &self.children {
+            None => {}
+            Some(children) => {
+                for child in children {
+                    output.push_str(child.to_string(tab_count + 1).as_str())
+                }
+            }
+        }
+
+        output
+    }
 }
 
 #[derive(Debug)]
@@ -58,17 +78,17 @@ pub struct Tracker {
 }
 
 impl Tracker {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Tracker {
             stack: vec![Report::new(GLOBAL_SUMMARY)],
         }
     }
 
-    pub fn start(name: &'static str) {
+    fn start(name: &'static str) {
         GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.push(Report::new(name)));
     }
 
-    pub fn end() {
+    fn end() {
         GLOBAL_TRACKER.with(|v| {
             let stack = &mut v.borrow_mut().stack;
             if stack.len() <= 1 {
@@ -79,7 +99,7 @@ impl Tracker {
         });
     }
 
-    pub fn summary() -> Report {
+    fn summary() -> Report {
         GLOBAL_TRACKER.with(|tracker| {
             let mut stack_copy = tracker.borrow().stack.clone();
 
@@ -94,14 +114,14 @@ impl Tracker {
         })
     }
 
-    pub fn reset() {
+    fn reset() {
         GLOBAL_TRACKER.with(|v| v.replace(Tracker::new()));
     }
 }
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        f.write_str(self.to_string(0).as_str())
     }
 }
 
@@ -118,6 +138,31 @@ pub fn update_inv() {
 #[cfg(test)]
 mod tests {
     use super::{update_add, update_inv, update_mul, Tracker};
+
+    fn gkr_sumcheck_squence() {
+        Tracker::start("gkr");
+        {
+            Tracker::start("sumcheck");
+            {
+                update_add();
+                update_mul();
+                Tracker::start("poly");
+                Tracker::end();
+            }
+            Tracker::end();
+
+            Tracker::start("sumcheck");
+            {
+                update_inv();
+                Tracker::start("poly");
+                update_mul();
+                Tracker::end();
+            }
+            Tracker::end();
+        }
+        update_add();
+        Tracker::end();
+    }
 
     #[test]
     fn test_nested_tracker_summary_call() {
@@ -519,6 +564,15 @@ mod tests {
             &0
         );
 
+        Tracker::reset();
+    }
+
+    #[test]
+    fn test_display() {
+        Tracker::reset();
+        gkr_sumcheck_squence();
+
+        println!("{}", Tracker::summary());
         Tracker::reset();
     }
 }

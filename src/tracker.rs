@@ -1,6 +1,9 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, sync::LazyLock};
 
-static mut GLOBAL_TRACKER: Tracker = Tracker { stack: vec![] };
+const GLOBAL_SUMMARY: &'static str = "Global Summary";
+
+static mut GLOBAL_TRACKER: LazyLock<RefCell<Tracker>> =
+    LazyLock::new(|| RefCell::new(Tracker::new()));
 
 #[derive(Debug, Clone)]
 pub struct ReportValues {
@@ -11,7 +14,7 @@ pub struct ReportValues {
 
 #[derive(Debug, Clone)]
 pub struct Report {
-    name: String,
+    name: &'static str,
     values: ReportValues,
     children: Option<Vec<Report>>,
 }
@@ -27,7 +30,7 @@ impl ReportValues {
 }
 
 impl Report {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: &'static str) -> Self {
         Report {
             name,
             values: ReportValues::new(),
@@ -56,16 +59,16 @@ pub struct Tracker {
 impl Tracker {
     pub fn new() -> Self {
         Tracker {
-            stack: vec![Report::new("Global Summary".to_string())],
+            stack: vec![Report::new(GLOBAL_SUMMARY)],
         }
     }
 
-    pub fn start(name: String) {
-        unsafe { GLOBAL_TRACKER.stack.push(Report::new(name)) };
+    pub fn start(name: &'static str) {
+        unsafe { GLOBAL_TRACKER.borrow_mut().stack.push(Report::new(name)) };
     }
 
     pub fn end() {
-        let stack = unsafe { &mut GLOBAL_TRACKER.stack };
+        let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
         if stack.len() <= 1 {
             panic!("Tracking not Started");
         }
@@ -74,21 +77,26 @@ impl Tracker {
     }
 
     pub fn summary() -> Report {
-        let stack = unsafe { &GLOBAL_TRACKER.stack };
-        stack.iter().skip(1).fold(
-            stack
-                .first()
-                .unwrap_or(&Report::new("Global Summary".to_string()))
-                .clone(),
-            |mut init, report| {
-                init.merge(report.clone());
-                init
-            },
-        )
+        let stack = unsafe { &GLOBAL_TRACKER.borrow().stack };
+        stack
+            .iter()
+            .skip(1)
+            .fold(
+                stack
+                    .first()
+                    .unwrap_or(&Report::new(GLOBAL_SUMMARY))
+                    .clone(),
+                |mut init, report| {
+                    init.merge(report.clone());
+                    init
+                },
+            )
+            .clone()
     }
 
     pub fn reset() {
-        unsafe { GLOBAL_TRACKER.stack = vec![Report::new("Global Summary".to_string())] };
+        // unsafe { GLOBAL_TRACKER.borrow_mut().stack = vec![Report::new(GLOBAL_SUMMARY)] };
+        unsafe { GLOBAL_TRACKER = LazyLock::new(|| RefCell::new(Tracker::new())) };
     }
 }
 
@@ -122,15 +130,15 @@ impl Display for Report {
 }
 
 pub fn update_add() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.stack };
+    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
     stack.last_mut().unwrap().values.add += 1;
 }
 pub fn update_mul() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.stack };
+    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
     stack.last_mut().unwrap().values.mul += 1;
 }
 pub fn update_inv() {
-    let stack = unsafe { &mut GLOBAL_TRACKER.stack };
+    let stack = unsafe { &mut GLOBAL_TRACKER.borrow_mut().stack };
     stack.last_mut().unwrap().values.inv += 1;
 }
 
@@ -141,14 +149,14 @@ pub mod tests {
     #[test]
     pub fn test_nested_tracker_summary_call() {
         Tracker::reset();
-        Tracker::start("GKR".to_string());
+        Tracker::start("GKR");
         update_inv();
         assert_eq!(
             Tracker::summary().values.inv,
             1,
             "Wrong summary for inverse"
         );
-        Tracker::start("Sumcheck".to_string());
+        Tracker::start("Sumcheck");
         update_add();
         update_add();
         assert_eq!(Tracker::summary().values.add, 2, "Wrong summary for add");
@@ -158,7 +166,7 @@ pub mod tests {
         assert_eq!(Tracker::summary().values.inv, 2, "Wrong summary for inv");
         assert_eq!(Tracker::summary().values.mul, 1, "Wrong summary for mul");
         Tracker::end();
-        Tracker::start("Sumcheck".to_string());
+        Tracker::start("Sumcheck");
         update_mul();
         update_mul();
         update_mul();
@@ -178,9 +186,9 @@ pub mod tests {
     pub fn test_end_tracker_inappropriately() {
         Tracker::reset();
         Tracker::summary();
-        Tracker::start("GKR".to_string());
+        Tracker::start("GKR");
         Tracker::summary();
-        Tracker::start("Sumcheck".to_string());
+        Tracker::start("Sumcheck");
         Tracker::summary();
         Tracker::end();
         Tracker::summary();

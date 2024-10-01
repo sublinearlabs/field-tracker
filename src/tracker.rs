@@ -28,7 +28,7 @@ impl Display for ReportValues {
 pub struct Report {
     name: &'static str,
     pub values: ReportValues,
-    children: Option<Vec<Report>>,
+    pub children: Option<Vec<Report>>,
 }
 
 impl Report {
@@ -117,7 +117,7 @@ impl Tracker {
         });
     }
 
-    pub(crate) fn summary() -> Report {
+    pub fn summary() -> Report {
         GLOBAL_TRACKER.with(|tracker| {
             let mut stack_copy = tracker.borrow().stack.clone();
 

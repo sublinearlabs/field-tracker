@@ -1,4 +1,5 @@
 use std::{cell::RefCell, fmt::Display};
+use treeline::Tree;
 
 const GLOBAL_SUMMARY: &'static str = "Global Summary";
 
@@ -70,6 +71,23 @@ impl Report {
 
         output
     }
+
+    fn build_tree(&self, tab_count: usize) -> Tree<String> {
+        let mut res = Tree::root(self.name.to_string());
+
+        res.push(Tree::root(self.values.to_string()));
+
+        match &self.children {
+            None => {}
+            Some(children) => {
+                for child in children {
+                    res.push(child.build_tree(tab_count + 1));
+                }
+            }
+        }
+
+        res
+    }
 }
 
 #[derive(Debug)]
@@ -121,7 +139,7 @@ impl Tracker {
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.to_string(0).as_str())
+        f.write_str(format!("{}", self.build_tree(0)).as_str())
     }
 }
 

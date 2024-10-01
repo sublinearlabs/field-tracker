@@ -27,7 +27,7 @@ impl Display for ReportValues {
 pub struct Report {
     name: &'static str,
     pub values: ReportValues,
-    children: Option<Vec<Report>>,
+    pub children: Option<Vec<Report>>,
 }
 
 impl Report {

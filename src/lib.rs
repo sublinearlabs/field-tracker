@@ -547,7 +547,7 @@ mod test {
     use ark_bn254::Fr;
     use ark_ff::Field;
 
-    use crate::Ft;
+    use crate::{end_tscope, start_tscope, summary, Ft};
 
     type F = Ft!(Fr);
 
@@ -582,5 +582,65 @@ mod test {
 
         assert_eq!(F::summary().values.add, 2);
         assert_eq!(F::summary().values.mul, 2);
+    }
+
+    #[test]
+    fn test_scope() {
+        let num1 = F::from(3);
+        let num2 = F::from(7);
+
+        start_tscope!("main");
+        let mut num3 = num1 + num2;
+
+        start_tscope!("inner");
+        let mut num4 = num1 * num2;
+        num3 += num2;
+        end_tscope!();
+
+        let _ = num4.inverse();
+        end_tscope!();
+
+        num4.inverse_in_place();
+
+        let summary = summary!();
+
+        // global assertions
+        assert_eq!(summary.values.add, 2);
+        assert_eq!(summary.values.mul, 1);
+        assert_eq!(summary.values.inv, 2);
+
+        // main assertions
+        assert_eq!(summary.children.as_ref().unwrap()[0].values.add, 2);
+        assert_eq!(summary.children.as_ref().unwrap()[0].values.mul, 1);
+        assert_eq!(summary.children.as_ref().unwrap()[0].values.inv, 1);
+
+        // inner assertions
+        assert_eq!(
+            summary.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .add,
+            1
+        );
+        assert_eq!(
+            summary.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .mul,
+            1
+        );
+        assert_eq!(
+            summary.children.as_ref().unwrap()[0]
+                .children
+                .as_ref()
+                .unwrap()[0]
+                .values
+                .inv,
+            0
+        );
     }
 }

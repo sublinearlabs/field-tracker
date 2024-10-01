@@ -547,7 +547,7 @@ mod test {
     use ark_bn254::Fr;
     use ark_ff::Field;
 
-    use crate::Ft;
+    use crate::{end_tscope, start_tscope, Ft};
 
     type F = Ft!(Fr);
 

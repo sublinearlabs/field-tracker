@@ -461,25 +461,41 @@ impl<'a, const N: usize, T: PrimeField> DivAssign<&'a mut Self> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField> Sum<Self> for Ft<N, T> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.sum()
+        let mut iterator = iter;
+        let sum = iterator.next();
+        iterator
+            .fold(sum, |acc, val| acc.map(|v| v + val))
+            .unwrap_or(Self::zero())
     }
 }
 
 impl<'a, const N: usize, T: PrimeField> Sum<&'a Self> for Ft<N, T> {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        iter.sum()
+        let mut iterator = iter;
+        let sum = iterator.next().cloned();
+        iterator
+            .fold(sum, |acc, val| acc.map(|v| v + val))
+            .unwrap_or(Self::zero())
     }
 }
 
 impl<const N: usize, T: PrimeField> Product<Self> for Ft<N, T> {
     fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.product()
+        let mut iterator = iter;
+        let prod = iterator.next();
+        iterator
+            .fold(prod, |acc, val| acc.map(|v| v * val))
+            .unwrap_or(Self::one())
     }
 }
 
 impl<'a, const N: usize, T: PrimeField> Product<&'a Self> for Ft<N, T> {
     fn product<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        iter.product()
+        let mut iterator = iter;
+        let prod = iterator.next().cloned();
+        iterator
+            .fold(prod, |acc, val| acc.map(|v| v * val))
+            .unwrap_or(Self::one())
     }
 }
 
@@ -552,5 +568,18 @@ mod test {
         assert_eq!(F::summary().values.add, 2);
         assert_eq!(F::summary().values.mul, 1);
         assert_eq!(F::summary().values.inv, 2);
+    }
+
+    #[test]
+    fn test_sum_and_product_iterators() {
+        let values = vec![F::from(3), F::from(7), F::from(9)];
+        let sum = values.iter().sum::<F>();
+        let prod = values.iter().product::<F>();
+
+        assert_eq!(sum, F::from(19));
+        assert_eq!(prod, F::from(189));
+
+        assert_eq!(F::summary().values.add, 2);
+        assert_eq!(F::summary().values.mul, 2);
     }
 }

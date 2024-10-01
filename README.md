@@ -29,9 +29,8 @@ println!("{}", Fq::summary());
 ### Example
 ```rust
 use field_tracker::Ft;
-use ark_bn245::Fq;
 
-type Fq = Ft<4, Fq>
+type Fq = Ft<4, ark_bn245::Fq>
 
 Fq::from(3) + Fq::from(5);
 

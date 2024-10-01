@@ -99,7 +99,7 @@ impl Tracker {
         });
     }
 
-    pub(crate) fn summary() -> Report {
+    pub fn summary() -> Report {
         GLOBAL_TRACKER.with(|tracker| {
             let mut stack_copy = tracker.borrow().stack.clone();
 

@@ -14,9 +14,8 @@ field-tracker = { git = "https://github.com/sublinearlabs/field-tracker", branch
 - Initialize the field tracker type
 ```rust
 use field_tracker::Ft;
-use ark_bn245::Fq;
 
-type Fq = Ft<4, Fq>
+type Fq = Ft<4, ark_bn245::Fq>
 ```
 
 - Call summary to get a summary of the operations.

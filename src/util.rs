@@ -9,7 +9,7 @@ macro_rules! Ft {
 macro_rules! start_tscope {
     ($scope_name:expr) => {
         if std::any::type_name_of_val($scope_name).contains("str") {
-            $crate::Tracker::start($scope_name)
+            $crate::tracker::Tracker::start($scope_name)
         } else {
             panic!("start_scope requires scope name (string)")
         }
@@ -19,20 +19,20 @@ macro_rules! start_tscope {
 #[macro_export]
 macro_rules! end_tscope {
     () => {
-        $crate::Tracker::end()
+        $crate::tracker::Tracker::end()
     };
 }
 
 #[macro_export]
 macro_rules! print_summary {
     () => {
-        println!("{}", $crate::Tracker::summary())
+        println!("{}", $crate::tracker::Tracker::summary())
     };
 }
 
 #[macro_export]
 macro_rules! summary {
     () => {
-        $crate::Tracker::summary()
+        $crate::tracker::Tracker::summary()
     };
 }

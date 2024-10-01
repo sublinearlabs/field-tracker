@@ -13,6 +13,7 @@ use std::{str::FromStr, vec::IntoIter};
 use tracker::{update_add, update_inv, update_mul, Report, Tracker};
 
 mod tracker;
+mod util;
 
 #[derive(Debug, Clone, Eq, PartialEq, Copy, Default, Ord, PartialOrd)]
 pub struct Ft<const N: usize, T: PrimeField> {
@@ -548,7 +549,7 @@ mod test {
 
     use crate::Ft;
 
-    type F = Ft<4, Fr>;
+    type F = Ft!(Fr);
 
     #[test]
     fn test_integration() {

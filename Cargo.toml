@@ -12,6 +12,7 @@ num-bigint = "0.4.6"
 rand = "0.8.5"
 treeline = "0.1.0"
 zeroize = "1.8.1"
+num-format = "0.4.4"
 
 [dev-dependencies]
 ark-bn254 = "0.4.0"

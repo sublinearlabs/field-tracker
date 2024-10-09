@@ -1,5 +1,6 @@
 use std::{cell::RefCell, fmt::Display};
 use treeline::Tree;
+use num_format::{Locale, ToFormattedString};
 
 const GLOBAL_SUMMARY: &'static str = "Global Summary";
 
@@ -19,7 +20,7 @@ impl Display for ReportValues {
         write!(
             f,
             "{}",
-            format!("add: {}, mul: {}, inv: {}", self.add, self.mul, self.inv)
+            format!("add: {}, mul: {}, inv: {}", self.add.to_formatted_string(&Locale::en), self.mul.to_formatted_string(&Locale::en), self.inv.to_formatted_string(&Locale::en))
         )
     }
 }

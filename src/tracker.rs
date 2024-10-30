@@ -10,6 +10,7 @@ thread_local! {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ReportValues {
     pub add: usize,
+    pub sub: usize,
     pub mul: usize,
     pub inv: usize,
 }
@@ -19,7 +20,10 @@ impl Display for ReportValues {
         write!(
             f,
             "{}",
-            format!("add: {}, mul: {}, inv: {}", self.add, self.mul, self.inv)
+            format!(
+                "add: {}, sub: {}, mul: {}, inv: {}",
+                self.add, self.sub, self.mul, self.inv
+            )
         )
     }
 }
@@ -42,6 +46,7 @@ impl Report {
 
     fn merge(&mut self, child_report: Report) {
         self.values.add += child_report.values.add;
+        self.values.sub += child_report.values.sub;
         self.values.mul += child_report.values.mul;
         self.values.inv += child_report.values.inv;
         match &mut self.children {
@@ -145,6 +150,10 @@ impl Display for Report {
 
 pub fn update_add() {
     GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.add += 1);
+}
+
+pub fn update_sub() {
+    GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.sub += 1);
 }
 pub fn update_mul() {
     GLOBAL_TRACKER.with(|v| v.borrow_mut().stack.last_mut().unwrap().values.mul += 1);

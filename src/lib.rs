@@ -1,4 +1,4 @@
-use ark_ff::{BigInt, FftField, Field, One, PrimeField, UniformRand, Zero};
+use ark_ff::{AdditiveGroup, BigInt, FftField, Field, One, PrimeField, UniformRand, Zero};
 use ark_serialize::{
     CanonicalDeserialize, CanonicalDeserializeWithFlags, CanonicalSerialize,
     CanonicalSerializeWithFlags, Compress, Flags, Read, SerializationError, Valid, Validate, Write,
@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::iter::{Iterator, Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use std::{str::FromStr, vec::IntoIter};
+use std::str::FromStr;
 use tracker::{update_add, update_inv, update_mul, update_sub, Report, Tracker};
 
 pub mod tracker;
@@ -92,11 +92,7 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> From<Ft<N, T>> for BigIn
 impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     type BasePrimeField = Ft<N, T>;
 
-    type BasePrimeFieldIter = IntoIter<Self::BasePrimeField>;
-
     const SQRT_PRECOMP: Option<ark_ff::SqrtPrecomputation<Self>> = None;
-
-    const ZERO: Self = from_primefield(T::ZERO);
 
     const ONE: Self = from_primefield(T::ONE);
 
@@ -104,7 +100,9 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
         T::extension_degree()
     }
 
-    fn to_base_prime_field_elements(&self) -> Self::BasePrimeFieldIter {
+    fn to_base_prime_field_elements(
+        &self,
+    ) -> impl Iterator<Item = <Self as Field>::BasePrimeField> {
         self.inner
             .to_base_prime_field_elements()
             .map(|v| from_primefield(v))
@@ -112,27 +110,15 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
             .into_iter()
     }
 
-    fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self> {
-        T::from_base_prime_field_elems(elems.iter().map(|v| v.inner).collect::<Vec<_>>().as_slice())
+    fn from_base_prime_field_elems(
+        elems: impl IntoIterator<Item = Self::BasePrimeField>,
+    ) -> Option<Self> {
+        T::from_base_prime_field_elems(elems.into_iter().map(|v| v.inner).collect::<Vec<_>>())
             .map(|v| from_primefield(v))
     }
 
     fn from_base_prime_field(elem: Self::BasePrimeField) -> Self {
         from_primefield(T::from_base_prime_field(elem.inner))
-    }
-
-    fn double(&self) -> Self {
-        from_primefield(self.inner.double())
-    }
-
-    fn double_in_place(&mut self) -> &mut Self {
-        self.inner.double_in_place();
-        self
-    }
-
-    fn neg_in_place(&mut self) -> &mut Self {
-        self.inner.neg_in_place();
-        self
     }
 
     fn from_random_bytes_with_flags<F: Flags>(bytes: &[u8]) -> Option<(Self, F)> {
@@ -174,6 +160,16 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     fn sqrt(&self) -> Option<Self> {
         self.inner.sqrt().map(|v| from_primefield(v))
     }
+
+    fn mul_by_base_prime_field(&self, elem: &Self::BasePrimeField) -> Self {
+        update_mul();
+        from_primefield(self.inner.mul_by_base_prime_field(&elem.inner))
+    }
+}
+
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> AdditiveGroup for Ft<N, T> {
+    type Scalar = Ft<N, T>;
+    const ZERO: Self = from_primefield(T::ZERO);
 }
 
 const fn from_primefield<const N: usize, T: PrimeField>(value: T) -> Ft<N, T> {
@@ -544,6 +540,29 @@ impl<const N: usize, T: PrimeField> From<bool> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField + std::convert::From<i32>> From<i32> for Ft<N, T> {
     fn from(value: i32) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField> From<i8> for Ft<N, T> {
+    fn from(value: i8) -> Self {
+        from_primefield(value.into())
+    }
+}
+impl<const N: usize, T: PrimeField> From<i16> for Ft<N, T> {
+    fn from(value: i16) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField> From<i64> for Ft<N, T> {
+    fn from(value: i64) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField> From<i128> for Ft<N, T> {
+    fn from(value: i128) -> Self {
         from_primefield(value.into())
     }
 }

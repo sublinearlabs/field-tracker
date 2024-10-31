@@ -109,7 +109,7 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     }
 
     fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self> {
-        T::from_base_prime_field_elems(elems.iter().map(|v| v.inner).collect::<Vec<_>>().as_slice())
+        T::from_base_prime_field_elems(elems.iter().cloned().map(|v| v.inner).collect::<Vec<_>>())
             .map(|v| from_primefield(v))
     }
 

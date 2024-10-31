@@ -2,7 +2,7 @@ use num_format::{Locale, ToFormattedString};
 use std::{cell::RefCell, fmt::Display};
 use treeline::Tree;
 
-const GLOBAL_SUMMARY: &'static str = "Global Summary";
+const GLOBAL_SUMMARY: &str = "Global Summary";
 
 thread_local! {
     static GLOBAL_TRACKER: RefCell<Tracker> = RefCell::new(Tracker::new());
@@ -20,14 +20,11 @@ impl Display for ReportValues {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}",
-            format!(
-                "add: {}, sub: {}, mul: {}, inv: {}",
-                self.add.to_formatted_string(&Locale::en),
-                self.sub.to_formatted_string(&Locale::en),
-                self.mul.to_formatted_string(&Locale::en),
-                self.inv.to_formatted_string(&Locale::en)
-            )
+            "add: {}, sub: {}, mul: {}, inv: {}",
+            self.add.to_formatted_string(&Locale::en),
+            self.sub.to_formatted_string(&Locale::en),
+            self.mul.to_formatted_string(&Locale::en),
+            self.inv.to_formatted_string(&Locale::en)
         )
     }
 }
@@ -61,13 +58,14 @@ impl Report {
         }
     }
 
+    #[allow(dead_code)]
     fn to_string(&self, tab_count: usize) -> String {
         let mut output = String::new();
 
         let tab_str = "  ".repeat(tab_count);
 
         output.push_str(format!("\n{}{}\n", tab_str, self.name).as_str());
-        output.push_str(format!(" {}{}\n", tab_str, self.values.to_string()).as_str());
+        output.push_str(format!(" {}{}\n", tab_str, self.values).as_str());
 
         match &self.children {
             None => {}
@@ -81,7 +79,7 @@ impl Report {
         output
     }
 
-    fn build_tree(&self, tab_count: usize) -> Tree<String> {
+    fn build_tree(&self) -> Tree<String> {
         let mut res = Tree::root(self.name.to_string());
 
         res.push(Tree::root(self.values.to_string()));
@@ -90,7 +88,7 @@ impl Report {
             None => {}
             Some(children) => {
                 for child in children {
-                    res.push(child.build_tree(tab_count + 1));
+                    res.push(child.build_tree());
                 }
             }
         }
@@ -141,6 +139,7 @@ impl Tracker {
         })
     }
 
+    #[allow(dead_code)]
     fn reset() {
         GLOBAL_TRACKER.with(|v| v.replace(Tracker::new()));
     }
@@ -148,7 +147,7 @@ impl Tracker {
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("{}", self.build_tree(0)).as_str())
+        f.write_str(format!("{}", self.build_tree()).as_str())
     }
 }
 

@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::iter::{Iterator, Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use std::{str::FromStr, vec::IntoIter};
+use std::str::FromStr;
 use tracker::{update_add, update_inv, update_mul, Report, Tracker};
 
 pub mod tracker;

@@ -579,7 +579,7 @@ mod test {
 
     #[test]
     fn test_sum_and_product_iterators() {
-        let values = vec![F::from(3), F::from(7), F::from(9)];
+        let values = [F::from(3), F::from(7), F::from(9)];
         let sum = values.iter().sum::<F>();
         let prod = values.iter().product::<F>();
 

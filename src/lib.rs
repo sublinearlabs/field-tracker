@@ -1,4 +1,4 @@
-use ark_ff::{BigInt, FftField, Field, One, PrimeField, UniformRand, Zero};
+use ark_ff::{AdditiveGroup, BigInt, FftField, Field, One, PrimeField, UniformRand, Zero};
 use ark_serialize::{
     CanonicalDeserialize, CanonicalDeserializeWithFlags, CanonicalSerialize,
     CanonicalSerializeWithFlags, Compress, Flags, Read, SerializationError, Valid, Validate, Write,
@@ -100,7 +100,7 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
         T::extension_degree()
     }
 
-    fn to_base_prime_field_elements(&self) -> Self::BasePrimeFieldIter {
+    fn to_base_prime_field_elements(&self) -> impl Iterator<Item = <Self as Field>::BasePrimeField> {
         self.inner
             .to_base_prime_field_elements()
             .map(|v| from_primefield(v))
@@ -159,8 +159,13 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
 
     fn mul_by_base_prime_field(&self, elem: &Self::BasePrimeField) -> Self {
         update_mul();
-        from_primefield(self.inner.mul_by_base_prime_field(elem.inner))
+        from_primefield(self.inner.mul_by_base_prime_field(&elem.inner))
     }
+}
+
+impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> AdditiveGroup for Ft<N, T> {
+    type Scalar = Ft<N, T>;
+    const ZERO: Self = from_primefield(T::ZERO);
 }
 
 const fn from_primefield<const N: usize, T: PrimeField>(value: T) -> Ft<N, T> {
@@ -528,6 +533,30 @@ impl<const N: usize, T: PrimeField + std::convert::From<i32>> From<i32> for Ft<N
         from_primefield(value.into())
     }
 }
+
+impl<const N: usize, T: PrimeField> From<i8> for Ft<N, T> {
+    fn from(value: i8) -> Self {
+        from_primefield(value.into())
+    }
+}
+impl<const N: usize, T: PrimeField> From<i16> for Ft<N, T> {
+    fn from(value: i16) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField> From<i64> for Ft<N, T> {
+    fn from(value: i64) -> Self {
+        from_primefield(value.into())
+    }
+}
+
+impl<const N: usize, T: PrimeField> From<i128> for Ft<N, T> {
+    fn from(value: i128) -> Self {
+        from_primefield(value.into())
+    }
+}
+
 
 #[cfg(test)]
 mod test {

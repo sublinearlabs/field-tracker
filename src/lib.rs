@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 use std::iter::{Iterator, Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::str::FromStr;
-use tracker::{update_add, update_inv, update_mul, Report, Tracker};
+use tracker::{update_add, update_inv, update_mul, update_sub, Report, Tracker};
 
 pub mod tracker;
 pub mod util;
@@ -298,6 +298,7 @@ impl<const N: usize, T: PrimeField> Sub<Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn sub(self, rhs: Self) -> Self::Output {
+        update_sub();
         from_primefield(self.inner.sub(rhs.inner))
     }
 }
@@ -319,6 +320,7 @@ impl<const N: usize, T: PrimeField> AddAssign<Self> for Ft<N, T> {
 
 impl<const N: usize, T: PrimeField> SubAssign<Self> for Ft<N, T> {
     fn sub_assign(&mut self, rhs: Self) {
+        update_sub();
         self.inner.sub_assign(rhs.inner)
     }
 }
@@ -349,6 +351,7 @@ impl<'a, const N: usize, T: PrimeField> Sub<&'a Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn sub(self, rhs: &'a Self) -> Self::Output {
+        update_sub();
         from_primefield(self.inner.sub(rhs.inner))
     }
 }
@@ -379,6 +382,7 @@ impl<'a, const N: usize, T: PrimeField> AddAssign<&'a Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> SubAssign<&'a Self> for Ft<N, T> {
     fn sub_assign(&mut self, rhs: &'a Self) {
+        update_sub();
         self.inner.sub_assign(rhs.inner);
     }
 }
@@ -409,6 +413,7 @@ impl<'a, const N: usize, T: PrimeField> Sub<&'a mut Self> for Ft<N, T> {
     type Output = Ft<N, T>;
 
     fn sub(self, rhs: &'a mut Self) -> Self::Output {
+        update_sub();
         from_primefield(self.inner.sub(rhs.inner))
     }
 }
@@ -439,6 +444,7 @@ impl<'a, const N: usize, T: PrimeField> AddAssign<&'a mut Self> for Ft<N, T> {
 
 impl<'a, const N: usize, T: PrimeField> SubAssign<&'a mut Self> for Ft<N, T> {
     fn sub_assign(&mut self, rhs: &'a mut Self) {
+        update_sub();
         self.inner.sub_assign(rhs.inner);
     }
 }
@@ -592,7 +598,7 @@ mod test {
 
     #[test]
     fn test_sum_and_product_iterators() {
-        let values = vec![F::from(3), F::from(7), F::from(9)];
+        let values = [F::from(3), F::from(7), F::from(9)];
         let sum = values.iter().sum::<F>();
         let prod = values.iter().product::<F>();
 

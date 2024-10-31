@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ark-ff = "0.4.2"
-ark-serialize = "0.4.2"
+ark-ff = "0.5.0"
+ark-serialize = "0.5.0"
 num-bigint = "0.4.6"
 rand = "0.8.5"
 treeline = "0.1.0"
@@ -15,4 +15,4 @@ zeroize = "1.8.1"
 num-format = "0.4.4"
 
 [dev-dependencies]
-ark-bn254 = "0.4.0"
+ark-bn254 = "0.5.0"

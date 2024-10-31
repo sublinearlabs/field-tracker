@@ -92,11 +92,7 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> From<Ft<N, T>> for BigIn
 impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
     type BasePrimeField = Ft<N, T>;
 
-    type BasePrimeFieldIter = IntoIter<Self::BasePrimeField>;
-
     const SQRT_PRECOMP: Option<ark_ff::SqrtPrecomputation<Self>> = None;
-
-    const ZERO: Self = from_primefield(T::ZERO);
 
     const ONE: Self = from_primefield(T::ONE);
 
@@ -119,20 +115,6 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
 
     fn from_base_prime_field(elem: Self::BasePrimeField) -> Self {
         from_primefield(T::from_base_prime_field(elem.inner))
-    }
-
-    fn double(&self) -> Self {
-        from_primefield(self.inner.double())
-    }
-
-    fn double_in_place(&mut self) -> &mut Self {
-        self.inner.double_in_place();
-        self
-    }
-
-    fn neg_in_place(&mut self) -> &mut Self {
-        self.inner.neg_in_place();
-        self
     }
 
     fn from_random_bytes_with_flags<F: Flags>(bytes: &[u8]) -> Option<(Self, F)> {
@@ -173,6 +155,11 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
 
     fn sqrt(&self) -> Option<Self> {
         self.inner.sqrt().map(|v| from_primefield(v))
+    }
+
+    fn mul_by_base_prime_field(&self, elem: &Self::BasePrimeField) -> Self {
+        update_mul();
+        from_primefield(self.inner.mul_by_base_prime_field(elem.inner))
     }
 }
 

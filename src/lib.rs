@@ -100,7 +100,9 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
         T::extension_degree()
     }
 
-    fn to_base_prime_field_elements(&self) -> impl Iterator<Item = <Self as Field>::BasePrimeField> {
+    fn to_base_prime_field_elements(
+        &self,
+    ) -> impl Iterator<Item = <Self as Field>::BasePrimeField> {
         self.inner
             .to_base_prime_field_elements()
             .map(|v| from_primefield(v))
@@ -108,8 +110,10 @@ impl<const N: usize, T: PrimeField<BigInt = BigInt<N>>> Field for Ft<N, T> {
             .into_iter()
     }
 
-    fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self> {
-        T::from_base_prime_field_elems(elems.iter().cloned().map(|v| v.inner).collect::<Vec<_>>())
+    fn from_base_prime_field_elems(
+        elems: impl IntoIterator<Item = Self::BasePrimeField>,
+    ) -> Option<Self> {
+        T::from_base_prime_field_elems(elems.into_iter().map(|v| v.inner).collect::<Vec<_>>())
             .map(|v| from_primefield(v))
     }
 
@@ -556,7 +560,6 @@ impl<const N: usize, T: PrimeField> From<i128> for Ft<N, T> {
         from_primefield(value.into())
     }
 }
-
 
 #[cfg(test)]
 mod test {

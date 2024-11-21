@@ -167,6 +167,7 @@ pub fn update_inv() {
 
 #[cfg(test)]
 mod tests {
+    use std::thread;
     use super::{update_add, update_inv, update_mul, Tracker};
 
     fn gkr_sumcheck_squence() {
@@ -603,6 +604,29 @@ mod tests {
         gkr_sumcheck_squence();
 
         println!("{}", Tracker::summary());
+        Tracker::reset();
+    }
+
+    #[test]
+    fn test_multi_thread_tracking() {
+        Tracker::reset();
+
+        update_inv();
+
+        let handle1 = thread::spawn(|| {
+            update_add();
+        });
+
+        let handle2 = thread::spawn(|| {
+            update_mul();
+        });
+
+        let summary = Tracker::summary();
+
+        assert_eq!(summary.values.add, 1);
+        assert_eq!(summary.values.mul, 1);
+        assert_eq!(summary.values.inv, 1);
+
         Tracker::reset();
     }
 }
